@@ -10,6 +10,11 @@ type HeroSectionProps = {
   onExitComplete: () => void;
 };
 
+const heroExitTransition = {
+  duration: 2.25,
+  ease: [0.83, 0, 0.17, 1],
+} as const;
+
 export default function HeroSection({
   isReady,
   isExiting,
@@ -38,10 +43,17 @@ export default function HeroSection({
 
   return (
     <motion.section
-      className="fixed inset-0 z-40 flex h-screen items-end overflow-hidden bg-black text-white"
+      className="fixed inset-0 z-40 flex h-screen items-end overflow-hidden bg-black text-white will-change-transform"
       initial={false}
-      animate={{ x: isExiting ? '100%' : '0%' }}
-      transition={{ duration: 1.45, ease: 'easeInOut' }}
+      animate={{
+        borderBottomLeftRadius: isExiting ? 34 : 0,
+        borderTopLeftRadius: isExiting ? 34 : 0,
+        boxShadow: isExiting
+          ? '-40px 0 90px rgba(5,5,4,0.28)'
+          : '0 0 0 rgba(5,5,4,0)',
+        x: isExiting ? '108%' : '0%',
+      }}
+      transition={heroExitTransition}
       onAnimationComplete={() => {
         if (isExiting) {
           onExitComplete();
@@ -52,8 +64,12 @@ export default function HeroSection({
       <motion.div
         className="absolute inset-0 origin-center"
         initial={false}
-        animate={{ scale: isExiting ? 1.06 : 1 }}
-        transition={{ duration: 1.45, ease: 'easeInOut' }}
+        animate={{
+          filter: isExiting ? 'blur(3px)' : 'blur(0px)',
+          scale: isExiting ? 1.11 : 1,
+          x: isExiting ? '-7%' : '0%',
+        }}
+        transition={heroExitTransition}
       >
         <video
           ref={videoRef}
@@ -71,8 +87,22 @@ export default function HeroSection({
       <motion.div
         className="absolute inset-0 bg-black"
         initial={false}
-        animate={{ opacity: isExiting ? 0.4 : 0.3 }}
-        transition={{ duration: 1.45, ease: 'easeInOut' }}
+        animate={{ opacity: isExiting ? 0.18 : 0.3 }}
+        transition={heroExitTransition}
+      />
+
+      <motion.div
+        className="pointer-events-none absolute inset-y-0 left-0 w-[18vw] bg-gradient-to-r from-black/48 via-black/16 to-transparent"
+        initial={false}
+        animate={{ opacity: isExiting ? 1 : 0 }}
+        transition={{ duration: 1.55, ease: 'easeInOut' }}
+      />
+
+      <motion.div
+        className="pointer-events-none absolute inset-0 bg-[#efeee9]"
+        initial={false}
+        animate={{ opacity: isExiting ? [0, 0.08, 0] : 0 }}
+        transition={{ duration: 1.65, ease: [0.83, 0, 0.17, 1] }}
       />
 
       <motion.div
@@ -80,9 +110,10 @@ export default function HeroSection({
         initial={false}
         animate={{
           opacity: isReady && !isExiting ? 1 : 0,
-          y: isExiting ? -24 : 0,
+          y: isExiting ? -38 : 0,
+          filter: isExiting ? 'blur(8px)' : 'blur(0px)',
         }}
-        transition={{ duration: 0.9, ease: 'easeInOut' }}
+        transition={{ duration: isExiting ? 0.72 : 0.9, ease: 'easeInOut' }}
       >
         <div className="max-w-lg space-y-3">
           <p className="text-3xl font-extralight tracking-[0.42em] uppercase sm:text-4xl md:text-5xl">

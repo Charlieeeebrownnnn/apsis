@@ -8,6 +8,7 @@ import LoadingIntro from '@/components/LoadingIntro';
 import ManifestoSection from '@/components/ManifestoSection';
 
 export default function HomePageExperience() {
+  const [isLoadingLeaving, setIsLoadingLeaving] = useState(false);
   const [isLoadingComplete, setIsLoadingComplete] = useState(false);
   const [isHeroExiting, setIsHeroExiting] = useState(false);
   const [isHeroComplete, setIsHeroComplete] = useState(false);
@@ -32,7 +33,7 @@ export default function HomePageExperience() {
     <main className="relative min-h-screen bg-[#efeee9] text-[#171717]">
       {!isHeroComplete ? (
         <HeroSection
-          isReady={isLoadingComplete}
+          isReady={isLoadingLeaving || isLoadingComplete}
           isExiting={isHeroExiting}
           onEnded={handleHeroEnded}
           onExitComplete={handleHeroExitComplete}
@@ -40,15 +41,18 @@ export default function HomePageExperience() {
       ) : null}
 
       {!isLoadingComplete ? (
-        <LoadingIntro onEnded={() => setIsLoadingComplete(true)} />
+        <LoadingIntro
+          isExiting={isLoadingLeaving}
+          onEnded={() => setIsLoadingLeaving(true)}
+          onExitComplete={() => setIsLoadingComplete(true)}
+        />
       ) : null}
 
-      {isHeroComplete ? (
-        <>
-          <EditorialGallery />
-          <ManifestoSection />
-        </>
+      {isLoadingComplete ? (
+        <EditorialGallery isActive={isHeroExiting || isHeroComplete} />
       ) : null}
+
+      {isHeroComplete ? <ManifestoSection /> : null}
     </main>
   );
 }

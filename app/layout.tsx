@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import SiteNav from "@/components/SiteNav";
 
 export const metadata: Metadata = {
   title: "APSIS",
@@ -13,7 +14,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="h-full antialiased" suppressHydrationWarning>
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <SiteNav />
+        {children}
+      </body>
     </html>
   );
 }
