@@ -11,7 +11,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-type ClothingLook = {
+export type ClothingLook = {
   id: number;
   name: string;
   mainSrc: string;
@@ -21,58 +21,36 @@ type ClothingLook = {
   price: string;
 };
 
-const lookIds = [1, 2, 3, 4, 5, 6, 8, 9, 10];
+type ClothesSalesShowcaseProps = {
+  looks: ClothingLook[];
+};
 
-const looks: ClothingLook[] = lookIds.map((id, index) => ({
-  id,
-  name: `Runway System ${String(index + 1).padStart(2, '0')}`,
-  mainSrc: `/images/clothes/${id}-1.png`,
-  detailSrc: id === 1 ? '/images/clothes/new1.png' : `/images/clothes/${id}.png`,
-  material: [
-    'Technical shell / liquid nylon / taped seam',
-    'Compressed cotton / weather membrane / soft lining',
-    'Reflective surface / nylon twill / orbital cut',
-    'Washed graphite textile / layered air pocket',
-    'Ivory motion shell / matte hardware / inner mesh',
-    'Black field fabric / adjustable contour / raw edge',
-    'Dust coated weave / movement vent / hidden closure',
-    'Urban race cloth / dry handle / articulated sleeve',
-    'Low gravity textile / wind panel / soft structure',
-  ][index],
-  note: [
-    'A garment built for motion without noise.',
-    'Runway posture translated into a wearable system.',
-    'Light catches the fabric like a moving instrument.',
-    'Designed for distance, weather, and quiet speed.',
-    'A soft shell that keeps a precise silhouette.',
-    'The body moves first; the garment answers later.',
-    'Details remain close to the skin and almost hidden.',
-    'A city object with field-test proportions.',
-    'Quiet volume, controlled drift, practical gravity.',
-  ][index],
-  price: [
-    'NT$ 18,800',
-    'NT$ 22,400',
-    'NT$ 19,600',
-    'NT$ 24,000',
-    'NT$ 21,800',
-    'NT$ 20,200',
-    'NT$ 23,600',
-    'NT$ 18,400',
-    'NT$ 25,200',
-  ][index],
-}));
+const normalizeIndex = (index: number, lookCount: number) => (
+  (index + lookCount) % lookCount
+);
 
-const normalizeIndex = (index: number) => (index + looks.length) % looks.length;
-
-function getIndexFromLookParam(value: string | null) {
+function getIndexFromLookParam(value: string | null, looks: ClothingLook[]) {
   const parsedLook = Number(value);
   const nextIndex = looks.findIndex((look) => look.id === parsedLook);
 
   return nextIndex >= 0 ? nextIndex : 0;
 }
 
-export default function ClothesSalesShowcase() {
+export default function ClothesSalesShowcase({ looks }: ClothesSalesShowcaseProps) {
+  if (looks.length === 0) {
+    return (
+      <main className="fixed inset-0 flex h-[100dvh] items-center justify-center bg-[#f4f1ea] px-6 text-[#111111]">
+        <p className="text-[11px] uppercase tracking-[0.34em] text-[#111111]/54">
+          No clothing looks found.
+        </p>
+      </main>
+    );
+  }
+
+  return <ClothesSalesShowcaseCarousel looks={looks} />;
+}
+
+function ClothesSalesShowcaseCarousel({ looks }: ClothesSalesShowcaseProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [[activeIndex, direction], setActiveLook] = useState<[number, number]>([0, 1]);
@@ -83,32 +61,34 @@ export default function ClothesSalesShowcase() {
   const dragDeltaYRef = useRef(0);
   const wheelLockedRef = useRef(false);
 
-  const activeLook = looks[activeIndex];
+  const lookCount = looks.length;
+  const safeActiveIndex = Math.min(activeIndex, lookCount - 1);
+  const activeLook = looks[safeActiveIndex];
   const stackedCards = useMemo(
     () =>
       [3, 2, 1].map((offset) => ({
-        look: looks[normalizeIndex(activeIndex + offset)],
+        look: looks[normalizeIndex(safeActiveIndex + offset, lookCount)],
         offset,
       })),
-    [activeIndex],
+    [lookCount, looks, safeActiveIndex],
   );
 
   const stepLook = useCallback((step: number) => {
-    setActiveLook(([current]) => [normalizeIndex(current + step), step > 0 ? 1 : -1]);
-  }, []);
+    setActiveLook(([current]) => [normalizeIndex(current + step, lookCount), step > 0 ? 1 : -1]);
+  }, [lookCount]);
 
   const goToLook = useCallback(
     (index: number) => {
-      if (index === activeIndex) {
+      if (index === safeActiveIndex) {
         return;
       }
 
-      const forwardDistance = (index - activeIndex + looks.length) % looks.length;
-      const backwardDistance = (activeIndex - index + looks.length) % looks.length;
+      const forwardDistance = (index - safeActiveIndex + lookCount) % lookCount;
+      const backwardDistance = (safeActiveIndex - index + lookCount) % lookCount;
 
       setActiveLook([index, forwardDistance <= backwardDistance ? 1 : -1]);
     },
-    [activeIndex],
+    [lookCount, safeActiveIndex],
   );
 
   useEffect(() => {
@@ -133,8 +113,8 @@ export default function ClothesSalesShowcase() {
     }
 
     lastSyncedLookParamRef.current = nextLookParam;
-    setActiveLook([getIndexFromLookParam(nextLookParam), 1]);
-  }, [router, searchParams]);
+    setActiveLook([getIndexFromLookParam(nextLookParam, looks), 1]);
+  }, [looks, router, searchParams]);
 
   useEffect(() => {
     const previousBodyOverflow = document.body.style.overflow;
@@ -356,7 +336,7 @@ export default function ClothesSalesShowcase() {
               className="px-1 pb-1 pt-3"
             >
               <p className="text-[9px] uppercase tracking-[0.34em] text-[#111111]/42">
-                Look {String(activeIndex + 1).padStart(2, '0')} / Detail
+                Look {String(safeActiveIndex + 1).padStart(2, '0')} / Detail
               </p>
               <p className="mt-3 text-[10px] uppercase leading-relaxed tracking-[0.24em] text-[#111111]/54">
                 {activeLook.material}
