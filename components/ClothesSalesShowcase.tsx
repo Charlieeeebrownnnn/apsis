@@ -25,15 +25,69 @@ type ClothesSalesShowcaseProps = {
   looks: ClothingLook[];
 };
 
+type SanityImageOptions = {
+  auto?: string;
+  fit?: string;
+  h?: number;
+  q?: number;
+  w?: number;
+};
+
 const normalizeIndex = (index: number, lookCount: number) => (
   (index + lookCount) % lookCount
 );
+
+const editorialLookNames = [
+  'Orbital Field',
+  'Quiet Velocity',
+  'Light Instrument',
+  'Weather Drift',
+  'Ivory Motion',
+  'Black Field',
+  'Dust Signal',
+  'Urban Pressure',
+  'Low Gravity',
+];
+
+function getOptimizedSanityImageUrl(src: string, options: SanityImageOptions) {
+  if (!src) {
+    return src;
+  }
+
+  try {
+    const url = new URL(src);
+
+    if (url.hostname !== 'cdn.sanity.io') {
+      return src;
+    }
+
+    Object.entries(options).forEach(([key, value]) => {
+      if (value !== undefined) {
+        url.searchParams.set(key, String(value));
+      }
+    });
+
+    return url.toString();
+  } catch {
+    return src;
+  }
+}
 
 function getIndexFromLookParam(value: string | null, looks: ClothingLook[]) {
   const parsedLook = Number(value);
   const nextIndex = looks.findIndex((look) => look.id === parsedLook);
 
   return nextIndex >= 0 ? nextIndex : 0;
+}
+
+function getDisplayLookName(look: ClothingLook, index: number) {
+  if (!/^Runway System\s+\d+/i.test(look.name)) {
+    return look.name;
+  }
+
+  const editorialName = editorialLookNames[index] ?? 'Motion Study';
+
+  return `${editorialName} ${String(index + 1).padStart(2, '0')}`;
 }
 
 export default function ClothesSalesShowcase({ looks }: ClothesSalesShowcaseProps) {
@@ -64,6 +118,7 @@ function ClothesSalesShowcaseCarousel({ looks }: ClothesSalesShowcaseProps) {
   const lookCount = looks.length;
   const safeActiveIndex = Math.min(activeIndex, lookCount - 1);
   const activeLook = looks[safeActiveIndex];
+  const activeLookName = getDisplayLookName(activeLook, safeActiveIndex);
   const stackedCards = useMemo(
     () =>
       [3, 2, 1].map((offset) => ({
@@ -202,7 +257,13 @@ function ClothesSalesShowcaseCarousel({ looks }: ClothesSalesShowcaseProps) {
         <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-px bg-[#111111]/10" />
 
         <div className="absolute left-5 top-20 z-30 max-w-[290px] md:left-8 md:top-24">
-          <p className="text-[10px] uppercase tracking-[0.38em] text-[#111111]/42">
+          <p
+            className="text-[10px] uppercase tracking-[0.38em] text-[#f4f1ea]/92"
+            style={{
+              WebkitTextStroke: '0.35px rgba(17, 17, 17, 0.22)',
+              paintOrder: 'stroke fill',
+            }}
+          >
             APSIS Garment System
           </p>
           <AnimatePresence mode="wait">
@@ -213,10 +274,22 @@ function ClothesSalesShowcaseCarousel({ looks }: ClothesSalesShowcaseProps) {
               exit={{ opacity: 0, y: -12, filter: 'blur(8px)' }}
               transition={{ duration: 0.72, ease: [0.16, 1, 0.3, 1] }}
             >
-              <h1 className="mt-4 text-[clamp(36px,5.8vw,84px)] font-light leading-[0.88] tracking-[-0.085em]">
-                {activeLook.name}
+              <h1
+                className="mt-4 text-[clamp(36px,5.8vw,84px)] font-light leading-[0.88] tracking-[-0.085em] text-[#f4f1ea]/96"
+                style={{
+                  WebkitTextStroke: '0.5px rgba(17, 17, 17, 0.22)',
+                  paintOrder: 'stroke fill',
+                }}
+              >
+                {activeLookName}
               </h1>
-              <p className="mt-5 hidden max-w-[250px] text-sm leading-relaxed text-[#111111]/56 md:block">
+              <p
+                className="mt-5 hidden max-w-[250px] text-sm leading-relaxed text-[#f4f1ea]/78 md:block"
+                style={{
+                  WebkitTextStroke: '0.25px rgba(17, 17, 17, 0.18)',
+                  paintOrder: 'stroke fill',
+                }}
+              >
                 {activeLook.note}
               </p>
             </motion.div>
@@ -254,7 +327,12 @@ function ClothesSalesShowcaseCarousel({ looks }: ClothesSalesShowcaseProps) {
               aria-hidden="true"
             >
               <Image
-                src={look.mainSrc}
+                src={getOptimizedSanityImageUrl(look.mainSrc, {
+                  auto: 'format',
+                  fit: 'max',
+                  q: 78,
+                  w: 1400,
+                })}
                 alt=""
                 fill
                 sizes="(min-width: 1024px) 1180px, 88vw"
@@ -290,8 +368,13 @@ function ClothesSalesShowcaseCarousel({ looks }: ClothesSalesShowcaseProps) {
               className="absolute inset-0 z-30 overflow-hidden border border-[#111111]/14 bg-[#ded9ce] shadow-[0_54px_150px_rgba(36,31,21,0.22)]"
             >
               <Image
-                src={activeLook.mainSrc}
-                alt={`${activeLook.name} runway image`}
+                src={getOptimizedSanityImageUrl(activeLook.mainSrc, {
+                  auto: 'format',
+                  fit: 'max',
+                  q: 78,
+                  w: 1400,
+                })}
+                alt={`${activeLookName} runway image`}
                 fill
                 priority
                 sizes="(min-width: 1024px) 1180px, 88vw"
@@ -303,7 +386,7 @@ function ClothesSalesShowcaseCarousel({ looks }: ClothesSalesShowcaseProps) {
           </AnimatePresence>
         </div>
 
-        <aside className="absolute bottom-20 right-5 z-50 w-[min(58vw,240px)] border border-[#111111]/12 bg-[#f4f1ea]/78 p-2 shadow-[0_28px_80px_rgba(36,31,21,0.16)] backdrop-blur-md md:bottom-24 md:right-8 md:w-[280px]">
+        <aside className="absolute bottom-7 right-4 z-50 w-[min(58vw,240px)] border border-[#111111]/12 bg-[#f4f1ea]/78 p-2 shadow-[0_28px_80px_rgba(36,31,21,0.16)] backdrop-blur-md md:bottom-10 md:right-6 md:w-[280px]">
           <div className="relative aspect-[3/4] overflow-hidden bg-[#d7d1c6] md:aspect-[2/3]">
             <AnimatePresence custom={direction} initial={false}>
               <motion.div
@@ -316,8 +399,14 @@ function ClothesSalesShowcaseCarousel({ looks }: ClothesSalesShowcaseProps) {
                 className="absolute inset-0"
               >
                 <Image
-                  src={activeLook.detailSrc}
-                  alt={`${activeLook.name} garment detail`}
+                  src={getOptimizedSanityImageUrl(activeLook.detailSrc, {
+                    auto: 'format',
+                    fit: 'max',
+                    h: 560,
+                    q: 75,
+                    w: 420,
+                  })}
+                  alt={`${activeLookName} garment detail`}
                   fill
                   sizes="310px"
                   className="object-contain p-2 saturate-[0.96]"
@@ -340,6 +429,15 @@ function ClothesSalesShowcaseCarousel({ looks }: ClothesSalesShowcaseProps) {
               </p>
               <p className="mt-3 text-[10px] uppercase leading-relaxed tracking-[0.24em] text-[#111111]/54">
                 {activeLook.material}
+              </p>
+              <p
+                className="mt-3 text-[10px] uppercase leading-relaxed tracking-[0.22em] text-[#f4f1ea]/78"
+                style={{
+                  WebkitTextStroke: '0.22px rgba(17, 17, 17, 0.16)',
+                  paintOrder: 'stroke fill',
+                }}
+              >
+                Light catches the fabric like a moving instrument.
               </p>
               <div className="mt-4 flex items-center justify-between border-t border-[#111111]/12 pt-3 text-[10px] uppercase tracking-[0.24em] text-[#111111]/68">
                 <span>{activeLook.price}</span>
@@ -372,7 +470,13 @@ function ClothesSalesShowcaseCarousel({ looks }: ClothesSalesShowcaseProps) {
                 aria-label={`View look ${look.id}`}
               >
                 <Image
-                  src={look.detailSrc}
+                  src={getOptimizedSanityImageUrl(look.detailSrc, {
+                    auto: 'format',
+                    fit: 'crop',
+                    h: 64,
+                    q: 70,
+                    w: 64,
+                  })}
                   alt=""
                   fill
                   sizes="32px"
