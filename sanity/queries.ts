@@ -14,7 +14,8 @@ export const CLOTHING_LOOKS_QUERY = `
 export const CHAIR_PRODUCTS_QUERY = `
   *[_type == "chairProduct"] | order(order asc) {
     _id,
-    "id": slug.current,
+    "id": order,
+    "slug": slug.current,
     name,
     "src": productImage.asset->url,
     material,

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import CartDrawer from "@/components/CartDrawer";
 import SiteNav from "@/components/SiteNav";
+import { CartProvider } from "@/context/CartContext";
 
 export const metadata: Metadata = {
   title: "APSIS",
@@ -15,8 +17,11 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full antialiased" suppressHydrationWarning>
       <body className="min-h-full flex flex-col">
-        <SiteNav />
-        {children}
+        <CartProvider>
+          <SiteNav />
+          {children}
+          <CartDrawer />
+        </CartProvider>
       </body>
     </html>
   );

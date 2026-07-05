@@ -10,6 +10,7 @@ import {
 import { AnimatePresence, motion } from 'framer-motion';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useCart } from '@/context/CartContext';
 
 export type ClothingLook = {
   _id?: string;
@@ -110,6 +111,7 @@ export default function ClothesSalesShowcase({ looks }: ClothesSalesShowcaseProp
 }
 
 function ClothesSalesShowcaseCarousel({ looks }: ClothesSalesShowcaseProps) {
+  const { addItem, openCart } = useCart();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [[activeIndex, direction], setActiveLook] = useState<[number, number]>([0, 1]);
@@ -245,6 +247,19 @@ function ClothesSalesShowcaseCarousel({ looks }: ClothesSalesShowcaseProps) {
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId);
     }
+  };
+
+  const handleAddToBag = () => {
+    addItem({
+      id: activeLook.id,
+      type: 'garment',
+      cartId: `garment-${activeLook.id}`,
+      name: activeLookName,
+      price: activeLook.price,
+      image: activeLook.detailSrc,
+      quantity: 1,
+    });
+    openCart();
   };
 
   return (
@@ -449,6 +464,13 @@ function ClothesSalesShowcaseCarousel({ looks }: ClothesSalesShowcaseProps) {
                 <span>{activeLook.price}</span>
                 <span>Made to order</span>
               </div>
+              <button
+                type="button"
+                onClick={handleAddToBag}
+                className="mt-4 w-full border border-[#111111]/16 bg-[#111111]/[0.03] px-4 py-3 text-[10px] uppercase tracking-[0.3em] text-[#111111]/62 transition-[border-color,color,background-color] duration-500 hover:border-[#111111]/38 hover:bg-[#111111] hover:text-[#f4f1ea]"
+              >
+                Add to Bag
+              </button>
             </motion.div>
           </AnimatePresence>
         </aside>

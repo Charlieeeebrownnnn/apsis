@@ -10,10 +10,12 @@ import {
 } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import Image from 'next/image';
+import { useCart } from '@/context/CartContext';
 
 export type ChairProduct = {
   _id?: string;
-  id: string;
+  id: number;
+  slug?: string;
   name: string;
   src: string;
   material: string;
@@ -82,6 +84,7 @@ export default function ChairSalesShowcase({ products }: ChairSalesShowcaseProps
 }
 
 function ChairSalesShowcaseCarousel({ products }: ChairSalesShowcaseProps) {
+  const { addItem, openCart } = useCart();
   const [[activeIndex, direction], setActiveChair] = useState<[number, number]>([0, 1]);
   const dragStartXRef = useRef(0);
   const dragStartYRef = useRef(0);
@@ -204,6 +207,19 @@ function ChairSalesShowcaseCarousel({ products }: ChairSalesShowcaseProps) {
     }
   };
 
+  const handleAddToBag = () => {
+    addItem({
+      id: activeChair.id,
+      type: 'chair',
+      cartId: `chair-${activeChair.id}`,
+      name: activeChair.name,
+      price: activeChair.price,
+      image: activeChair.src,
+      quantity: 1,
+    });
+    openCart();
+  };
+
   return (
     <main
       className="fixed inset-0 h-[100dvh] overflow-hidden overscroll-none bg-[#efeee9] text-[#111111]"
@@ -251,6 +267,13 @@ function ChairSalesShowcaseCarousel({ products }: ChairSalesShowcaseProps) {
               <p className="mt-6 text-xs uppercase tracking-[0.32em] text-[#111111]/72">
                 {activeChair.price}
               </p>
+              <button
+                type="button"
+                onClick={handleAddToBag}
+                className="mt-6 border border-[#111111]/16 bg-[#111111]/[0.03] px-5 py-3 text-[10px] uppercase tracking-[0.32em] text-[#111111]/64 backdrop-blur-sm transition-[border-color,color,background-color] duration-500 hover:border-[#111111]/38 hover:bg-[#111111] hover:text-[#efeee9]"
+              >
+                Add to Bag
+              </button>
             </motion.div>
           </AnimatePresence>
         </aside>
