@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "crop:clothes": "node scripts/crop-clothes-detail.mjs"
+    "crop:clothes": "node scripts/crop-clothes-detail.mjs",
+    "import:chairs": "node scripts/import-chair-products.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",

@@ -11,85 +11,77 @@ import {
 import { AnimatePresence, motion } from 'framer-motion';
 import Image from 'next/image';
 
-type ChairProduct = {
+export type ChairProduct = {
+  _id?: string;
   id: string;
   name: string;
   src: string;
   material: string;
   note: string;
   price: string;
+  spinFramePath?: string;
+  spinFrameCount?: number;
 };
 
-const chairs: ChairProduct[] = [
-  {
-    id: 'orbit-01',
-    name: 'Orbit Chair 01',
-    src: '/images/products/chair1.png',
-    material: 'Smoked polymer shell / brushed alloy base',
-    note: 'A low gravity seat study for domestic motion.',
-    price: 'NT$ 42,000',
-  },
-  {
-    id: 'orbit-02',
-    name: 'Orbit Chair 02',
-    src: '/images/products/chair2.webp',
-    material: 'Graphite textile / satin black frame',
-    note: 'Compressed posture, soft reflection, quiet rotation.',
-    price: 'NT$ 39,000',
-  },
-  {
-    id: 'orbit-03',
-    name: 'Orbit Chair 03',
-    src: '/images/products/chair3.webp',
-    material: 'Warm shell / powder coated steel',
-    note: 'Built as a calm object inside fast rooms.',
-    price: 'NT$ 41,000',
-  },
-  {
-    id: 'orbit-04',
-    name: 'Orbit Chair 04',
-    src: '/images/products/chair4.webp',
-    material: 'Deep fabric / orbital metal joint',
-    note: 'A chair that holds light without shouting.',
-    price: 'NT$ 45,000',
-  },
-  {
-    id: 'orbit-05',
-    name: 'Orbit Chair 05',
-    src: '/images/products/chair5.png',
-    material: 'Ivory composite / shadow lacquer',
-    note: 'Soft geometry with a sharper silhouette.',
-    price: 'NT$ 44,000',
-  },
-  {
-    id: 'orbit-06',
-    name: 'Orbit Chair 06',
-    src: '/images/products/chair6.png',
-    material: 'Ash surface / blackened aluminum',
-    note: 'An object for pause, repeat, and return.',
-    price: 'NT$ 43,000',
-  },
-  {
-    id: 'orbit-07',
-    name: 'Orbit Chair 07',
-    src: '/images/products/chair7.png',
-    material: 'Matte dark shell / polished foot ring',
-    note: 'Circular balance with a heavier visual center.',
-    price: 'NT$ 47,000',
-  },
-  {
-    id: 'orbit-08',
-    name: 'Orbit Chair 08',
-    src: '/images/products/chair8.png',
-    material: 'Stone textile / smoked steel',
-    note: 'Designed for rooms that feel slightly lunar.',
-    price: 'NT$ 46,000',
-  },
-];
+type ChairSalesShowcaseProps = {
+  products: ChairProduct[];
+};
 
-const normalizeIndex = (index: number) => (index + chairs.length) % chairs.length;
+type SanityImageOptions = {
+  auto?: string;
+  fit?: string;
+  h?: number;
+  q?: number;
+  w?: number;
+};
 
-export default function ChairSalesShowcase() {
+const normalizeIndex = (index: number, productCount: number) => (
+  (index + productCount) % productCount
+);
+
+function getOptimizedSanityImageUrl(src: string, options: SanityImageOptions) {
+  if (!src) {
+    return src;
+  }
+
+  try {
+    const url = new URL(src);
+
+    if (url.hostname !== 'cdn.sanity.io') {
+      return src;
+    }
+
+    Object.entries(options).forEach(([key, value]) => {
+      if (value !== undefined) {
+        url.searchParams.set(key, String(value));
+      }
+    });
+
+    return url.toString();
+  } catch {
+    return src;
+  }
+}
+
+function getChairKey(chair: ChairProduct, fallback: string | number) {
+  return chair._id ?? `${chair.id}-${fallback}`;
+}
+
+export default function ChairSalesShowcase({ products }: ChairSalesShowcaseProps) {
+  if (products.length === 0) {
+    return (
+      <main className="fixed inset-0 flex h-[100dvh] items-center justify-center bg-[#efeee9] px-6 text-[#111111]">
+        <p className="text-[11px] uppercase tracking-[0.34em] text-[#111111]/54">
+          No chair products found.
+        </p>
+      </main>
+    );
+  }
+
+  return <ChairSalesShowcaseCarousel products={products} />;
+}
+
+function ChairSalesShowcaseCarousel({ products }: ChairSalesShowcaseProps) {
   const [[activeIndex, direction], setActiveChair] = useState<[number, number]>([0, 1]);
   const dragStartXRef = useRef(0);
   const dragStartYRef = useRef(0);
@@ -97,32 +89,38 @@ export default function ChairSalesShowcase() {
   const dragDeltaYRef = useRef(0);
   const wheelLockedRef = useRef(false);
 
-  const activeChair = chairs[activeIndex];
+  const productCount = products.length;
+  const safeActiveIndex = Math.min(activeIndex, productCount - 1);
+  const activeChair = products[safeActiveIndex];
+  const activeChairKey = getChairKey(activeChair, safeActiveIndex);
 
   const stepChair = useCallback((step: number) => {
-    setActiveChair(([current]) => [normalizeIndex(current + step), step > 0 ? 1 : -1]);
-  }, []);
+    setActiveChair(([current]) => [
+      normalizeIndex(current + step, productCount),
+      step > 0 ? 1 : -1,
+    ]);
+  }, [productCount]);
 
   const goToChair = useCallback(
     (index: number) => {
-      if (index === activeIndex) {
+      if (index === safeActiveIndex) {
         return;
       }
 
-      const forwardDistance = (index - activeIndex + chairs.length) % chairs.length;
-      const backwardDistance = (activeIndex - index + chairs.length) % chairs.length;
+      const forwardDistance = (index - safeActiveIndex + productCount) % productCount;
+      const backwardDistance = (safeActiveIndex - index + productCount) % productCount;
 
       setActiveChair([index, forwardDistance <= backwardDistance ? 1 : -1]);
     },
-    [activeIndex],
+    [productCount, safeActiveIndex],
   );
 
   const orbitItems = useMemo(() => {
-    return chairs.map((chair, index) => {
-      const rawOffset = (index - activeIndex + chairs.length) % chairs.length;
-      const offset = rawOffset > chairs.length / 2 ? rawOffset - chairs.length : rawOffset;
-      const angle = 90 + offset * (360 / chairs.length);
-      const isActive = index === activeIndex;
+    return products.map((chair, index) => {
+      const rawOffset = (index - safeActiveIndex + productCount) % productCount;
+      const offset = rawOffset > productCount / 2 ? rawOffset - productCount : rawOffset;
+      const angle = 90 + offset * (360 / productCount);
+      const isActive = index === safeActiveIndex;
       const depth = Math.cos((angle * Math.PI) / 180);
 
       return {
@@ -134,7 +132,7 @@ export default function ChairSalesShowcase() {
         scale: isActive ? 1.12 : 0.78 + Math.max(0, depth) * 0.12,
       };
     });
-  }, [activeIndex]);
+  }, [productCount, products, safeActiveIndex]);
 
   useEffect(() => {
     const previousBodyOverflow = document.body.style.overflow;
@@ -237,7 +235,7 @@ export default function ChairSalesShowcase() {
         <aside className="absolute bottom-24 right-5 z-30 max-w-[310px] text-right md:bottom-[18vh] md:right-8">
           <AnimatePresence mode="wait">
             <motion.div
-              key={activeChair.id}
+              key={`${activeChairKey}-copy`}
               initial={{ opacity: 0, y: 18, filter: 'blur(8px)' }}
               animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
               exit={{ opacity: 0, y: -12, filter: 'blur(8px)' }}
@@ -258,7 +256,7 @@ export default function ChairSalesShowcase() {
         </aside>
 
         <p className="absolute right-5 top-20 z-30 text-[10px] uppercase tracking-[0.34em] text-[#111111]/42 md:right-8 md:top-24">
-          Index {String(activeIndex + 1).padStart(2, '0')}
+          Index {String(safeActiveIndex + 1).padStart(2, '0')}
         </p>
 
         <div
@@ -285,7 +283,7 @@ export default function ChairSalesShowcase() {
 
             <AnimatePresence custom={direction} initial={false}>
               <motion.div
-                key={activeChair.id}
+                key={activeChairKey}
                 custom={direction}
                 initial={{
                   opacity: 0,
@@ -304,7 +302,12 @@ export default function ChairSalesShowcase() {
                 className="absolute -inset-[5%]"
               >
                 <Image
-                  src={activeChair.src}
+                  src={getOptimizedSanityImageUrl(activeChair.src, {
+                    auto: 'format',
+                    fit: 'max',
+                    q: 78,
+                    w: 1200,
+                  })}
                   alt={activeChair.name}
                   fill
                   priority
@@ -318,7 +321,7 @@ export default function ChairSalesShowcase() {
           <div className="absolute inset-0">
             {orbitItems.map(({ angle, chair, index, isActive, opacity, scale }) => (
               <button
-                key={chair.id}
+                key={getChairKey(chair, index)}
                 type="button"
                 className={[
                   'absolute left-1/2 top-1/2 z-30 h-16 w-16 overflow-hidden rounded-full border bg-[#f8f6ef]/84 p-1 backdrop-blur-md transition-[border-color,opacity,transform] duration-[1100ms] ease-out md:h-[92px] md:w-[92px]',
@@ -335,7 +338,13 @@ export default function ChairSalesShowcase() {
                 <span className="relative block h-full w-full overflow-hidden rounded-full bg-[#d8d2c5]">
                   <span className="pointer-events-none absolute inset-0 z-10 rounded-full bg-[radial-gradient(circle_at_50%_32%,rgba(255,255,255,0.32),transparent_44%),radial-gradient(circle_at_50%_80%,rgba(17,17,17,0.18),transparent_56%)]" />
                   <Image
-                    src={chair.src}
+                    src={getOptimizedSanityImageUrl(chair.src, {
+                      auto: 'format',
+                      fit: 'crop',
+                      h: 184,
+                      q: 72,
+                      w: 184,
+                    })}
                     alt=""
                     fill
                     sizes="92px"

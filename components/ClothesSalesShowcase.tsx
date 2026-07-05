@@ -12,6 +12,7 @@ import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 export type ClothingLook = {
+  _id?: string;
   id: number;
   name: string;
   mainSrc: string;
@@ -80,6 +81,10 @@ function getIndexFromLookParam(value: string | null, looks: ClothingLook[]) {
   return nextIndex >= 0 ? nextIndex : 0;
 }
 
+function getLookKey(look: ClothingLook, fallback: string | number) {
+  return look._id ?? `${look.id}-${fallback}`;
+}
+
 function getDisplayLookName(look: ClothingLook, index: number) {
   if (!/^Runway System\s+\d+/i.test(look.name)) {
     return look.name;
@@ -118,6 +123,7 @@ function ClothesSalesShowcaseCarousel({ looks }: ClothesSalesShowcaseProps) {
   const lookCount = looks.length;
   const safeActiveIndex = Math.min(activeIndex, lookCount - 1);
   const activeLook = looks[safeActiveIndex];
+  const activeLookKey = getLookKey(activeLook, safeActiveIndex);
   const activeLookName = getDisplayLookName(activeLook, safeActiveIndex);
   const stackedCards = useMemo(
     () =>
@@ -268,7 +274,7 @@ function ClothesSalesShowcaseCarousel({ looks }: ClothesSalesShowcaseProps) {
           </p>
           <AnimatePresence mode="wait">
             <motion.div
-              key={activeLook.id}
+              key={activeLookKey}
               initial={{ opacity: 0, y: 16, filter: 'blur(8px)' }}
               animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
               exit={{ opacity: 0, y: -12, filter: 'blur(8px)' }}
@@ -313,7 +319,7 @@ function ClothesSalesShowcaseCarousel({ looks }: ClothesSalesShowcaseProps) {
         >
           {stackedCards.map(({ look, offset }) => (
             <motion.div
-              key={`${look.id}-${offset}`}
+              key={`${getLookKey(look, safeActiveIndex)}-${offset}`}
               animate={{
                 opacity: 0.3 + (4 - offset) * 0.12,
                 scale: 1 - offset * 0.045,
@@ -345,7 +351,7 @@ function ClothesSalesShowcaseCarousel({ looks }: ClothesSalesShowcaseProps) {
 
           <AnimatePresence custom={direction} initial={false}>
             <motion.div
-              key={activeLook.mainSrc}
+              key={activeLookKey}
               custom={direction}
               initial={{
                 opacity: 0,
@@ -390,7 +396,7 @@ function ClothesSalesShowcaseCarousel({ looks }: ClothesSalesShowcaseProps) {
           <div className="relative aspect-[3/4] overflow-hidden bg-[#d7d1c6] md:aspect-[2/3]">
             <AnimatePresence custom={direction} initial={false}>
               <motion.div
-                key={activeLook.detailSrc}
+                key={`${activeLookKey}-detail-image`}
                 custom={direction}
                 initial={{ opacity: 0, y: direction * 34, scale: 1.012, filter: 'blur(6px)' }}
                 animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
@@ -417,7 +423,7 @@ function ClothesSalesShowcaseCarousel({ looks }: ClothesSalesShowcaseProps) {
 
           <AnimatePresence mode="wait">
             <motion.div
-              key={activeLook.id}
+              key={`${activeLookKey}-detail-text`}
               initial={{ opacity: 0, y: 12, filter: 'blur(8px)' }}
               animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
               exit={{ opacity: 0, y: -10, filter: 'blur(8px)' }}
@@ -458,7 +464,7 @@ function ClothesSalesShowcaseCarousel({ looks }: ClothesSalesShowcaseProps) {
           <div className="flex max-w-[230px] flex-wrap gap-2 md:max-w-none">
             {looks.map((look, index) => (
               <button
-                key={look.id}
+                key={getLookKey(look, index)}
                 type="button"
                 onClick={() => goToLook(index)}
                 className={[
