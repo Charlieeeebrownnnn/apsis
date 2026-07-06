@@ -1,36 +1,119 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# APSIS Fashion Site
+
+APSIS is an experimental fashion and product showcase website built with Next.js.
+The project focuses on cinematic storytelling, motion design, 3D interaction, and editorial-style visual presentation.
+
+## Overview
+
+This project explores how a fashion brand website can feel more like an interactive digital experience than a traditional e-commerce page.
+
+The homepage combines:
+
+* A cinematic hero video intro
+* A loading and transition sequence
+* A 3D orbital field built with React Three Fiber
+* Interactive archive reveal behavior
+* Scroll-based editorial image sections
+* Motion-driven UI details for a premium brand feeling
+
+## Tech Stack
+
+* **Framework:** Next.js
+* **Language:** TypeScript
+* **UI:** React, Tailwind CSS
+* **Animation:** Framer Motion, GSAP, ScrollTrigger
+* **3D:** Three.js, React Three Fiber, Drei
+* **CMS / Content:** Sanity client, next-sanity
+* **Tooling:** ESLint
+
+## Key Features
+
+### Cinematic Hero Experience
+
+The homepage starts with a full-screen video hero section.
+After the intro completes, the hero transitions out with Framer Motion animation, including movement, blur, scale, border radius, and shadow effects.
+
+### Interactive 3D Orbital Field
+
+The editorial gallery uses React Three Fiber and Three.js to render a 3D orbital scene.
+The visual concept presents fashion and motion through a space-inspired field with planets, rings, atmosphere, and interactive movement.
+
+### Editorial Archive Interaction
+
+After the orbital field is ready, users can trigger an archive reveal.
+The archive section presents visual assets with editorial captions, image layouts, and scroll-based movement.
+
+### Scroll-based Motion Design
+
+GSAP and ScrollTrigger are used to create kinetic scrolling effects in the archive section, including moving lines, rails, arcs, and visual layers.
+
+### Responsive Visual Layout
+
+The interface uses Tailwind CSS utility classes to build responsive layouts, full-screen sections, editorial grids, and layered visual effects.
+
+## Project Structure
+
+```txt
+app/
+  page.tsx                     # Entry page
+components/
+  HomePageExperience.tsx        # Main homepage flow
+  HeroSection.tsx               # Cinematic video hero
+  LoadingIntro.tsx              # Loading transition
+  EditorialGallery.tsx          # 3D orbital field and archive trigger
+  LusionFieldScene.tsx          # Three.js / React Three Fiber scene
+  EditorialArchiveSection.tsx   # Scroll-based editorial archive
+  ManifestoSection.tsx          # Future content section
+scripts/
+  crop-clothes-detail.mjs
+  import-chair-products.mjs
+```
 
 ## Getting Started
 
-First, run the development server:
+Install dependencies:
+
+```bash
+npm install
+```
+
+Run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Build for production:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run build
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Start the production server:
 
-## Learn More
+```bash
+npm run start
+```
 
-To learn more about Next.js, take a look at the following resources:
+## What I Practiced
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Through this project, I practiced:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+* Building a modern Next.js application with TypeScript
+* Creating animation-rich UI with Framer Motion and GSAP
+* Integrating Three.js scenes into React through React Three Fiber
+* Structuring a visual-heavy homepage into reusable components
+* Designing cinematic transitions and editorial-style interactions
+* Managing user interaction states across loading, hero, gallery, and archive phases
 
-## Deploy on Vercel
+## Future Improvements
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+* Add a complete product detail flow
+* Connect more content from Sanity CMS
+* Add screenshots and live demo link
+* Improve accessibility for motion-heavy interactions
+* Optimize large video and image assets for production performance
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Status
+
+This is a portfolio project focused on front-end interaction design, visual storytelling, and modern web animation.
